@@ -1,6 +1,7 @@
-﻿from fastapi import APIRouter, Depends, status, Request
+﻿from fastapi import APIRouter, Depends, status, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
+from app.core.email import send_otp_email
 from app.schemas.user import UserCreate
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest
 from app.schemas.otp import OTPVerifyRequest, OTPResendRequest, OTPResponse
@@ -13,20 +14,39 @@ from app.models.user import User
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(user_create: UserCreate, db: Session = Depends(get_db)):
-    return AuthService.register(db, user_create)
+async def register(user_create: UserCreate, db: Session = Depends(get_db)):
+    user = UserService.create_user(db, user_create)
+    otp_code = OTPService.send_otp(db, str(user.id), OTPType.email_verification)
+
+    try:
+        await send_otp_email(user.email, otp_code)
+    except Exception as e:
+        import logging
+        logging.getLogger("uvicorn.error").error(f"Failed to send OTP email to {user.email}: {e}")
+        db.delete(user)
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Could not send verification email. Please try registering again."
+        )
+
+    return {
+        "message": f"User registered. OTP sent to {user.email}",
+        "user_id": str(user.id),
+        "email": user.email
+    }
 
 @router.post("/verify-email")
 def verify_email(request: OTPVerifyRequest, db: Session = Depends(get_db)):
     return AuthService.verify_email_otp(db, request.email, request.otp_code)
 
 @router.post("/resend-otp", response_model=OTPResponse)
-def resend_otp(request: OTPResendRequest, db: Session = Depends(get_db)):
+async def resend_otp(request: OTPResendRequest, db: Session = Depends(get_db)):
     user = UserService.get_user_by_email(db, request.email)
     if not user:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="User not found")
-    OTPService.send_otp(db, str(user.id), OTPType.email_verification)
+    otp_code = OTPService.send_otp(db, str(user.id), OTPType.email_verification)
+    await send_otp_email(user.email, otp_code)
     return OTPResponse(message=f"OTP sent to {request.email}", email=request.email)
 
 @router.post("/login", response_model=TokenResponse)

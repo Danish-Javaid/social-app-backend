@@ -19,3 +19,11 @@ pytest==9.1.0
 pytest-cov==7.1.0
 
 
+
+fastapi-mail==1.6.5
+
+
+
+httpx==0.28.1
+
+

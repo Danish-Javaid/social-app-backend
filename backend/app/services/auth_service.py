@@ -8,6 +8,7 @@ from app.schemas.auth import TokenResponse
 from app.schemas.user import UserCreate
 from app.services.user_service import UserService
 from app.services.otp_service import OTPService
+from app.services.oauth_service import OAuthService
 from app.db.enums import OTPType
 from app.config import REFRESH_TOKEN_EXPIRE_DAYS
 from app.core.exceptions import UserNotVerifiedException, InvalidTokenException
@@ -111,6 +112,16 @@ class AuthService:
             raise
         except Exception:
             raise InvalidTokenException()
+    @staticmethod
+    def oauth_login(db: Session, provider: str, provider_user_id: str, email: str, name: str, ip_address: str = "unknown", user_agent: str = "unknown") -> TokenResponse:
+        user = OAuthService.find_or_create_user(db, provider, provider_user_id, email, name)
+
+        access_token = create_access_token(data={"sub": str(user.id)})
+        refresh_token = create_refresh_token(data={"sub": str(user.id)})
+
+        AuthService._persist_refresh_token(db, user, refresh_token, ip_address, user_agent)
+
+        return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
     @staticmethod
     def logout(db: Session, user_id: str, refresh_token: str) -> dict:
@@ -127,3 +138,4 @@ class AuthService:
                 return {"message": "Logged out successfully"}
 
         raise InvalidTokenException()
+

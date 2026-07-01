@@ -63,3 +63,23 @@ def test_full_register_login_flow():
     db.delete(db_user)
     db.commit()
     db.close()
+
+def test_register_rolls_back_user_on_email_failure(monkeypatch):
+    import uuid
+    from app.db.database import SessionLocal
+    from app.models.user import User
+
+    async def failing_send(*args, **kwargs):
+        raise Exception("SMTP down")
+
+    monkeypatch.setattr("app.api.v1.endpoints.auth.send_otp_email", failing_send)
+
+    email = f"rollback_{uuid.uuid4().hex[:8]}@example.com"
+    resp = client.post("/api/v1/auth/register", json={"email": email, "username": f"u{uuid.uuid4().hex[:8]}", "password": "SecurePass123!"})
+
+    assert resp.status_code == 502
+
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == email).first()
+    assert user is None
+    db.close()
