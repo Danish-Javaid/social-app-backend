@@ -3,7 +3,14 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
 
+<<<<<<< Updated upstream
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+=======
+# bcrypt_sha256 pre-hashes with SHA-256 before bcrypt, removing the 72-byte
+# password limit. "bcrypt" is kept as a fallback so any existing hashes in
+# the database (from before this change) still verify correctly.
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
+>>>>>>> Stashed changes
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
@@ -38,4 +45,8 @@ if __name__ == "__main__":
     print("Hash test:", verify_password(pw, h))
     at = create_access_token({"sub": "user123"})
     print("Access token:", at[:40], "...")
+<<<<<<< Updated upstream
     print("Decoded:", decode_token(at))
+=======
+    print("Decoded:", decode_token(at))
+>>>>>>> Stashed changes
