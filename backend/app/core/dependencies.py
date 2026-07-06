@@ -1,12 +1,27 @@
+<<<<<<< Updated upstream
 ﻿from fastapi import Depends, HTTPException, status
+=======
+from fastapi import Depends, HTTPException, status, Request
+>>>>>>> Stashed changes
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
 from app.models.user import User
 from app.core.security import decode_token
+<<<<<<< Updated upstream
 from jose import JWTError
 
 security = HTTPBearer()
+=======
+from app.config import ACCESS_TOKEN_COOKIE_NAME
+from jose import JWTError
+from typing import Optional
+
+# auto_error=False so requests with no Authorization header don't get
+# rejected before we've had a chance to fall back to the cookie.
+security = HTTPBearer(auto_error=False)
+
+>>>>>>> Stashed changes
 
 def get_db() -> Session:
     db = SessionLocal()
@@ -15,11 +30,35 @@ def get_db() -> Session:
     finally:
         db.close()
 
+<<<<<<< Updated upstream
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     token = credentials.credentials
+=======
+
+def _extract_token(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials],
+) -> Optional[str]:
+    # Authorization: Bearer <token> takes priority (used by API clients/tests)
+    if credentials and credentials.credentials:
+        return credentials.credentials
+    # Fall back to the httpOnly cookie set by /auth/login, /auth/refresh, etc.
+    return request.cookies.get(ACCESS_TOKEN_COOKIE_NAME)
+
+
+async def get_current_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: Session = Depends(get_db)
+) -> User:
+    token = _extract_token(request, credentials)
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+
+>>>>>>> Stashed changes
     try:
         payload = decode_token(token)
         user_id = payload.get("sub")
@@ -33,6 +72,10 @@ async def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
     from app.db.enums import UserRole
     if current_user.role != UserRole.admin:

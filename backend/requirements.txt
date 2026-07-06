@@ -10,7 +10,10 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 python-dotenv==1.0.0
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 httpx==0.25.2
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 aiosmtplib==3.0.1

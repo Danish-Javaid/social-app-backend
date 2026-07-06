@@ -3,6 +3,10 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 import httpx
 from app.core.dependencies import get_db
+<<<<<<< Updated upstream
+=======
+from app.core.cookies import set_auth_cookies
+>>>>>>> Stashed changes
 from app.schemas.auth import TokenResponse
 from app.schemas.oauth import GoogleAuthUrlResponse, GithubAuthUrlResponse
 from app.services.auth_service import AuthService
@@ -71,11 +75,17 @@ async def google_callback(code: str = Query(...), request: Request = None, db: S
         user_agent=user_agent,
     )
 
+<<<<<<< Updated upstream
     redirect_url = (
         f"{FRONTEND_URL}/oauth/callback"
         f"?access_token={tokens.access_token}&refresh_token={tokens.refresh_token}"
     )
     return RedirectResponse(url=redirect_url)
+=======
+    redirect = RedirectResponse(url=f"{FRONTEND_URL}/oauth/callback")
+    set_auth_cookies(redirect, tokens.access_token, tokens.refresh_token)
+    return redirect
+>>>>>>> Stashed changes
 
 
 @router.get("/github/authorize", response_model=GithubAuthUrlResponse)
@@ -154,8 +164,14 @@ async def github_callback(code: str = Query(...), request: Request = None, db: S
         user_agent=user_agent,
     )
 
+<<<<<<< Updated upstream
     redirect_url = (
         f"{FRONTEND_URL}/oauth/callback"
         f"?access_token={tokens.access_token}&refresh_token={tokens.refresh_token}"
     )
     return RedirectResponse(url=redirect_url)
+=======
+    redirect = RedirectResponse(url=f"{FRONTEND_URL}/oauth/callback")
+    set_auth_cookies(redirect, tokens.access_token, tokens.refresh_token)
+    return redirect
+>>>>>>> Stashed changes

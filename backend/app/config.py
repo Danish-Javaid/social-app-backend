@@ -47,6 +47,19 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 APP_NAME = "Social Media API"
 APP_VERSION = "0.1.0"
 
+<<<<<<< Updated upstream
+=======
+# Cookie settings (used to store access/refresh tokens as httpOnly cookies
+# instead of localStorage). Defaults are safe for local development
+# (non-secure, since localhost is served over http) and should be
+# overridden via env vars in production.
+ACCESS_TOKEN_COOKIE_NAME = "access_token"
+REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "False" if DEBUG else "True") == "True"
+COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
+COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN") or None
+
+>>>>>>> Stashed changes
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")
