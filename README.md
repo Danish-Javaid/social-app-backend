@@ -1,22 +1,46 @@
-# social-app-backend
+﻿# Social Media API - Backend (Week 1 Complete)
 
-Backend for the Social App.
+FastAPI backend with JWT auth, hashed OTP verification, and DB-backed refresh token sessions.
 
-## Getting started
+## Setup
 
-```bash
-git clone git@github-company:Danish-Javaid/social-app-backend.git
-cd social-app-backend
-git checkout development
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+docker-compose up -d
+alembic upgrade head
+uvicorn app.main:app --reload
 ```
 
-## Branches
+Server: http://localhost:8000
+Docs: http://localhost:8000/docs
 
-- **main** — stable, production-ready code. Do not commit directly.
-- **development** — active development branch. Base your feature branches off this.
+## Endpoints
 
-## Workflow
+POST /api/v1/auth/register
+POST /api/v1/auth/verify-email
+POST /api/v1/auth/resend-otp
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
+GET  /api/v1/users/me
+GET  /api/v1/users/{user_id}
 
-1. Create a feature branch off `development`: `git checkout -b feature/<name> development`
-2. Commit your work and push the feature branch.
-3. Open a pull request into `development`.
+## Architecture
+
+app/models -> app/schemas -> app/services -> app/api/v1/endpoints
+app/core holds security, dependencies, exceptions
+
+## Testing
+
+```powershell
+pytest tests\ -v --cov=app
+```
+
+## Deferred to Week 2+
+
+- media table and profile_picture_id foreign key
+- posts/comments/likes
+- full-text search, partitioning, archival
